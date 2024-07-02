@@ -232,6 +232,18 @@ def test_empty_file():
     assert response.status_code == 400
     assert response.json()["detail"] == "El archivo está vacío."
 
+# Validar que la imagen se pudo decodificar correctamente y no permitir scripts
+def test_malicious_file():
+    malicious_content = b"malicious content or script"
+    file = io.BytesIO(malicious_content)
+    response = client.post("/v1/face", files={"file": ("malicious.jpg", file, "image/jpeg")})
+    
+    assert response.status_code == 400
+    assert "detail" in response.json()
+    assert "No se pudo decodificar la imagen." in response.json()["detail"]
+
+
+
 def test_no_faces_detected():
     directory = 'tests/imgs_without_faces/'
     for filename in os.listdir(directory):
@@ -248,16 +260,6 @@ def test_no_faces_detected():
                 'La imagen no contiene caras humanas válidas.'
             ]
 
-
-# # Validar que la imagen se pudo decodificar correctamente y no permitir scripts
-# def test_malicious_file():
-#     malicious_content = b"malicious content or script"
-#     file = io.BytesIO(malicious_content)
-#     response = client.post("/v1/face", files={"file": ("malicious.jpg", file, "image/jpeg")})
-    
-#     assert response.status_code == 400
-#     assert "detail" in response.json()
-#     assert "No se pudo decodificar la imagen." in response.json()["detail"]
 
 
 #Se valida bloqueo en imagenes con tamaños superiores a los permitidos
